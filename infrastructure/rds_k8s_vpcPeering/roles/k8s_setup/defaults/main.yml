@@ -1,0 +1,8 @@
+aws_region: us-west-2
+k8s_version: "1.16.15"
+aws_profile: prod
+name: k8s.sahanakannahallimolesomanna.me
+node_count: 3
+master_size: t2.micro
+node_size: t2.micro
+ssh_key: ~/.ssh/cloud.pub

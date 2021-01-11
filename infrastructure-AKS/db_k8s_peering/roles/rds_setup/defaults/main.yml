@@ -1,0 +1,8 @@
+resource_group: azure-k8s-cluster
+aks_name: k8s-sahithisarabu-me
+location: westus2
+admin_user: azureuser
+admin_password: Abc12345
+size: 5120
+version: 8.0
+sku_name: B_Gen5_1

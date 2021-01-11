@@ -1,0 +1,16 @@
+---
+- name: Attach IAM policy for nodes
+  community.aws.iam_policy:
+    iam_type: role
+    iam_name: nodes.{{name}}
+    policy_name: "Autoscaling"
+    policy_document: ../roles/k8s_autoscaling/file/policy.json
+    state: present
+
+- name: Attach IAM policy for masters
+  community.aws.iam_policy:
+    iam_type: role
+    iam_name: masters.{{name}}
+    policy_name: "Autoscaling"
+    policy_document: ../roles/k8s_autoscaling/file/policy.json
+    state: present

@@ -1,0 +1,13 @@
+- name: Set Account Credentials
+  shell: az account set --subscription "{{ subscription }}"
+
+- name: Get Credentials of the cluster
+  shell: az aks get-credentials 
+    --resource-group "{{ resource_group }}" 
+    --name "{{ aks_name }}"
+    --overwrite-existing
+
+- name: Create Metrics Server
+  shell: kubectl apply -f ../roles/metrics_setup/tasks/components.yaml
+
+

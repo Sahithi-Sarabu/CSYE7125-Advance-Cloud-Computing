@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:mysql://mysql2:3306/csye7125_poller?serverTimezone=UTC
+    username: root
+    password: 11223344
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  data:
+    rest:
+      base-path: /
+server:
+  servlet:
+    context-path:
+state:
+  autoupdate:
+    fixedRate: 300
+
+
+

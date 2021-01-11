@@ -1,0 +1,6 @@
+---
+- name: "Setup AWS Networking Infrastructure and Install Jenkins"
+  hosts: webservers
+  gather_facts: no
+  roles:
+  - ../roles/jenkins

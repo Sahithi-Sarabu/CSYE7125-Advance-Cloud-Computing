@@ -1,0 +1,108 @@
+---
+- name: Delete RDS instance
+  rds:
+    command: delete
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    instance_name: csye7125
+    wait: yes
+    wait_timeout: 900
+- name: Delete RDS instance
+  rds:
+    command: delete
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    instance_name: csye7125poller
+    wait: yes
+    wait_timeout: 900
+- name: Delete RDS instance
+  rds:
+    command: delete
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    instance_name: csye7125notifier
+    wait: yes
+    wait_timeout: 900
+
+- name: Remove subnet group
+  rds_subnet_group:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    state: absent
+    name: MySQLDatabaseSubnets
+
+- name: Get rds vpc info
+  ec2_vpc_net_info:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ rds_vpc_name }}"
+  register: rds_vpc
+
+- name: Get k8s vpc info
+  ec2_vpc_net_info:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ k8s_vpc_name }}"
+  register: k8s_vpc
+
+- name: Delete Internet Gateway
+  ec2_vpc_igw:
+    state: absent
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    vpc_id: "{{ rds_vpc.vpcs[0].id }}"
+    tags:
+      Name: "rds_igw"
+  register: rds_igw
+
+- name: Delete subnets
+  ec2_vpc_subnet:
+    state: absent
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    az: "{{ item.value.az }}"
+    vpc_id: "{{ rds_vpc.vpcs[0].id }}"
+    cidr: "{{ item.value.cidr }}"
+    tags:
+      Name: "rds_{{ item.value.az }}"
+  with_dict: "{{ vpc_subnets }}"
+  register: rds_vpc_subnets
+
+- name: "Delete vpc security groups"
+  ec2_group:
+    state: absent
+    profile: "{{ aws_profile}}"
+    region: "{{ aws_region }}"
+    vpc_id: "{{ rds_vpc.vpcs[0].id }}"
+    name: "rds_sg_{{ rds_vpc.vpcs[0].id }}"
+    description: "rds security group for {{ rds_vpc.vpcs[0].id }}"
+    rules:
+      - proto: tcp
+        ports:
+        - 80
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow all on port 80
+      - proto: tcp
+        ports:
+        - 8080
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow all on port 8080
+      - proto: tcp
+        ports:
+        - 443
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow all on port 443
+      - proto: tcp
+        ports:
+        - 22
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow all on port 22
+      - proto: tcp
+        ports:
+        - 3306
+        cidr_ip: "{{ k8s_vpc.vpcs[0].cidr_block }}"
+        rule_desc: allow kubernetes cluster cidr
+  register: rds_sg
+

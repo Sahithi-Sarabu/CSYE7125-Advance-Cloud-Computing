@@ -1,0 +1,12 @@
+service:
+  rest: 9200
+  inter_node: 9300
+
+statefulset:
+  replicaCount: 3
+
+image:
+  repository: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""

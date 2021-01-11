@@ -1,0 +1,10 @@
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+    name: {{ .Release.Name }}-cert
+spec:
+    commonName: {{ .Values.ingress.host }}
+    secretName: {{ .Values.ingress.host }}
+    issuerRef:
+        name: {{ .Release.Name }}-cert-selfsigned

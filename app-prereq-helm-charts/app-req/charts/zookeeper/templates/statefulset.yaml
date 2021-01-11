@@ -1,0 +1,81 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+    name: zookeeper
+spec:
+    selector:
+      matchLabels:
+        app: zookeeper
+    serviceName: zookeeper-headless
+    replicas: {{ .Values.statefulset.replicaCount }}
+    updateStrategy:
+      type: RollingUpdate
+    podManagementPolicy: OrderedReady
+    template:
+      metadata:
+        labels:
+          app: zookeeper
+      spec:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: "app"
+                        operator: In
+                        values:
+                        - zookeeper
+                  topologyKey: "kubernetes.io/hostname"
+        containers:
+        - name: kubernetes-zookeeper
+          image: {{ .Values.image.repository }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }} 
+          resources:
+            requests:
+              memory: "100Mi"
+              cpu: "0.5"
+          ports:
+          - containerPort: {{ .Values.service.port }}
+            name: client
+          - containerPort: {{ .Values.headless_service.server }}
+            name: server
+          - containerPort: {{ .Values.headless_service.leader_election }}
+            name: leader-election
+          command:
+          - sh
+          - -c
+          - "start-zookeeper \
+            --servers=3 \
+            --data_dir=/var/lib/zookeeper/data \
+            --data_log_dir=/var/lib/zookeeper/data/log \
+            --conf_dir=/opt/zookeeper/conf \
+            --client_port=2181 \
+            --election_port=3888 \
+            --server_port=2888 \
+            --tick_time=2000 \
+            --init_limit=10 \
+            --sync_limit=5 \
+            --heap=512M \
+            --max_client_cnxns=60 \
+            --snap_retain_count=3 \
+            --purge_interval=12 \
+            --max_session_timeout=40000 \
+            --min_session_timeout=4000 \
+            --log_level=INFO"
+          volumeMounts:
+          - name: datadir
+            mountPath: /var/lib/zookeeper
+        securityContext:
+          runAsUser: 1000
+          fsGroup: 1000
+    volumeClaimTemplates:
+    - metadata:
+        name: datadir
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 200Mi

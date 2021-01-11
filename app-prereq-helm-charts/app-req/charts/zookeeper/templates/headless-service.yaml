@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: zookeeper-headless
+    labels:
+      app: zookeeper
+spec:
+    ports:
+    - port: {{ .Values.headless_service.server }}
+      name: server
+    - port: {{ .Values.headless_service.leader_election }}
+      name: leader-election
+    clusterIP: None
+    selector:
+      app: zookeeper

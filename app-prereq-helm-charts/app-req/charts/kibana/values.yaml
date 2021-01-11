@@ -1,0 +1,11 @@
+service:
+  port: 5601
+
+deployment:
+  replicaCount: 3
+
+image:
+  repository: docker.elastic.co/kibana/kibana:7.2.0
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""

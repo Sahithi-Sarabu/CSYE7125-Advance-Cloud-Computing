@@ -1,0 +1,7 @@
+- name: Create Metrics Server
+  shell: kubectl apply -f ../roles/metrics_setup/tasks/components.yaml
+  environment:
+    AWS_PROFILE: "{{ aws_profile }}"
+    KOPS_STATE_STORE: "s3://{{name}}"
+
+

@@ -1,0 +1,4 @@
+---
+- import_playbook: jenkins_infra.yml
+- import_playbook: jenkins.yml
+

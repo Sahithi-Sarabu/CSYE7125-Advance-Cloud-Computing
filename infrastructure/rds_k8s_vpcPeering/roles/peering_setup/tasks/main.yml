@@ -1,0 +1,97 @@
+---
+- name: Get k8s vpc info
+  ec2_vpc_net_info:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ k8s_vpc_name }}"
+  register: k8s_vpc
+
+- name: Get rds vpc info
+  ec2_vpc_net_info:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ rds_vpc_name }}"
+  register: rds_vpc
+  
+- name: Create VPC peering Connection from k8s VPC to rds VPC
+  ec2_vpc_peer:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    vpc_id: "{{ k8s_vpc.vpcs[0].id }}"
+    peer_vpc_id: "{{ rds_vpc.vpcs[0].id }}"
+    state: present
+    tags:
+      Name: Peering connection from k8s VPC to rds VPC
+  register: vpc_peer
+
+- name: Accept VPC peering request
+  ec2_vpc_peer:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    peering_id: "{{ vpc_peer.peering_id }}"
+    state: accept
+  register: accept_peer
+
+- name: Grab the route table of k8s
+  ec2_vpc_route_table_info:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    filters: 
+     "tag:Name": "{{ name }}" 
+  register: k8s_route_table_info
+
+- name: Get Internet Gateway of k8s
+  ec2_vpc_igw:
+    vpc_id: "{{ k8s_vpc.vpcs[0].id }}"
+    state: present
+  register: k8s_igw
+
+- name: Update the route table in the k8s
+  ec2_vpc_route_table:
+    state: present
+    lookup: id
+    route_table_id: "{{ k8s_route_table_info.route_tables[0].id }}"
+    vpc_id: "{{ k8s_vpc.vpcs[0].id }}"
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    tags:
+      Name: "{{ name }}"
+    routes:
+      - dest: "{{ rds_vpc.vpcs[0].cidr_block }}"
+        vpc_peering_connection_id: "{{ accept_peer.peering_id }}"
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ k8s_igw.gateway_id }}"
+  register: k8s_route_table_updated
+
+- name: Grab the route table of rds
+  ec2_vpc_route_table_info:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    filters:
+      vpc-id: "{{ rds_vpc.vpcs[0].id  }}"
+  register: rds_route_table
+
+- name: Get Internet Gateway of rds
+  ec2_vpc_igw:
+    vpc_id: "{{ rds_vpc.vpcs[0].id }}"
+    state: present
+  register: rds_igw
+
+- name: Update the route table in the rds
+  ec2_vpc_route_table:
+    state: present
+    lookup: id
+    route_table_id: "{{ rds_route_table.route_tables[0].id }}"
+    vpc_id: "{{ rds_vpc.vpcs[0].id }}"
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    tags:
+      Name: "rds_route_table_{{ rds_vpc.vpcs[0].id }}"
+    routes:
+      - dest: "{{ k8s_vpc.vpcs[0].cidr_block }}"
+        vpc_peering_connection_id: "{{ accept_peer.peering_id }}"
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ rds_igw.gateway_id }}"
+  register: rds_route_table_updated

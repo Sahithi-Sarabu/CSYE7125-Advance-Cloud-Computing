@@ -1,0 +1,71 @@
+- name: Get all the availability zones
+  aws_az_info:
+    profile: "{{ aws_profile }}"
+    filters:
+      region-name: "{{ aws_region }}"
+  register: az_regions
+
+- name: Get availability zones list
+  set_fact:
+    az_zones: "{{ az_regions.availability_zones | map(attribute='zone_name') | list }}"
+
+- name: Get only 3 az if 3 or more availabiltiy zones present
+  set_fact:
+    az_zones: "{{ [ az_regions.availability_zones[0].zone_name ] + [ az_regions.availability_zones[1].zone_name ] + [ az_regions.availability_zones[2].zone_name ] | list }}"
+  when: az_regions.availability_zones | length >= 3
+
+- name: Concatenate the availability zones
+  set_fact:
+    zones: "{{ az_zones | join(',') }}"
+
+- name: Create Cluster
+  shell: kops create cluster
+    --kubernetes-version={{k8s_version}}
+    --cloud=aws
+    --master-zones="{{ zones }}"
+    --zones="{{ zones }}"
+    --master-count=3
+    --node-count={{node_count}}
+    --topology private
+    --networking kopeio-vxlan
+    --node-size={{node_size}}
+    --master-size={{master_size}}
+    --state=s3://{{name}}
+    --bastion="true"
+    --name={{name}}
+    --ssh-public-key={{ssh_key}} --yes
+  environment:
+    AWS_PROFILE: "{{ aws_profile }}"
+    KOPS_STATE_STORE: "s3://{{name}}"
+  register: k8s_cluster
+
+- name: Update Kubernetes Agent
+  shell: |
+    kops set cluster {{name}} spec.kubelet.authenticationTokenWebhook=true
+    kops set cluster {{name}} spec.kubelet.authorizationMode=Webhook
+  environment:
+    AWS_PROFILE: "{{ aws_profile }}"
+    KOPS_STATE_STORE: "s3://{{name}}"
+    KOPS_FEATURE_FLAGS: SpecOverrideFlag
+
+- name: Update Cluster
+  shell: kops update cluster
+    --name={{name}}
+    --state=s3://{{name}}
+    --yes
+  environment:
+    AWS_PROFILE: "{{ aws_profile }}"
+    KOPS_STATE_STORE: "s3://{{name}}"
+
+- name: Validate Cluster
+  shell: kops validate cluster
+    --name={{name}}
+    --state=s3://{{name}}
+  delegate_to: localhost
+  register: result
+  until: result.stdout.find("is ready") !=-1
+  retries: 20
+  delay: 60
+  environment:
+    AWS_PROFILE: "{{ aws_profile }}"
+    KOPS_STATE_STORE: "s3://{{name}}"

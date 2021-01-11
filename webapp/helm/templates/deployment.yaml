@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-webapp-deployment
+  annotations:
+     prometheus.io/scrape: "true"
+     prometheus.io/port: "8080"
+     prometheus.io/path: "/actuator/prometheus"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  progressDeadlineSeconds: {{ .Values.progressDeadlineSeconds }}
+  minReadySeconds: {{ .Values.minReadySeconds }}
+  strategy:
+    rollingUpdate:
+      maxSurge: {{ .Values.maxSurge }}
+      maxUnavailable: {{ .Values.maxUnavailable }}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-webapp
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-webapp
+    spec:
+      imagePullSecrets:
+      - name: docker-hub-secret
+      serviceAccountName: {{ .Release.Name }}-webapp-serviceaccount
+      automountServiceAccountToken: false
+      containers:
+      - image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        name: webapp
+        imagePullPolicy: IfNotPresent
+        args: ["--spring.config.location=application.properties"]
+        resources:
+          requests:
+            cpu: 100m
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        volumeMounts:
+        - name: config
+          mountPath: application.properties
+          subPath: application.properties
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readinessState
+            port: 8080
+          initialDelaySeconds: {{ .Values.initialDelay }}
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/livenessState
+            port: 8080
+          initialDelaySeconds: {{ .Values.initialDelay }}
+          periodSeconds: {{ .Values.pollPeriod }}
+      volumes:
+      - name: config
+        configMap:
+          name: configmap
+          items:
+            - key: application.properties
+              path: application.properties

@@ -1,0 +1,28 @@
+---
+aws_region: us-west-2
+aws_profile: root
+ec2_image: ami-07a29e5e945228fa1
+ec2_instance_type: t2.micro
+ec2_keypair: aws_key_pair
+sub_domain: jenkins.sahanakannahallimolesomanna.me
+vpc_name: "jenkins-{{ aws_region}}-vpc"
+vpc_cidr: 10.0.0.0/16
+vpc_subnets:
+  private-1:
+    cidr: 10.0.1.0/24
+    az: "{{ aws_region }}b"
+  private-2:
+    cidr: 10.0.2.0/24
+    az: "{{ aws_region }}c"
+vpc_security_groups:
+  - name: ssh
+    description: "Open SSH port 22"
+    rules:
+      - proto: tcp
+        cidr_ip: 0.0.0.0/0
+        ports:
+          - 22
+terminate_key: "{{ key }}"
+terminate_value: "{{ value }}"
+elastic_ip:  "{{ lookup('env','IP') }}"
+email: sahanadi8894@gmail.com

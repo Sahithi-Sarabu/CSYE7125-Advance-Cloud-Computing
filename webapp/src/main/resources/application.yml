@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:mysql://mysql1:3306/csye7125?serverTimezone=UTC
+    username: root
+    password: 11223344
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  data:
+    rest:
+      base-path: /
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      batch-size: 16
+      retries: 0
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      #latest, earliest, none
+      enable-auto-commit: true
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+server:
+  servlet:
+    context-path:
+

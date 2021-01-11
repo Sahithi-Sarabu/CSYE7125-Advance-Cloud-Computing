@@ -1,0 +1,8 @@
+---
+- name: "Delete VPC perring, RDS instance and k8s cluster"
+  hosts: localhost
+  gather_facts: no
+  roles:
+  - ../roles/rds_delete
+  - ../roles/peering_delete 
+  - ../roles/k8s_delete

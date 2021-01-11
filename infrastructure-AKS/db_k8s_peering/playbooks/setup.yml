@@ -1,0 +1,8 @@
+---
+- name: "Setup RDS instance, k8s cluster and VPC peering"
+  hosts: localhost
+  gather_facts: no
+  roles:
+  - ../roles/k8s_setup
+  - ../roles/rds_setup
+  - ../roles/metrics_setup

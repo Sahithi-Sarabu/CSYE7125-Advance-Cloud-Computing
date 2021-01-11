@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmapnotifier
+data:
+  application.properties: |
+<<<<<<< HEAD
+    spring.datasource.url=jdbc:mysql://csye7125-notifier.mysql.database.azure.com:3306/csye7125-notifier?serverTimezone=UTC
+    spring.datasource.username=azureuser@csye7125-notifier
+    spring.datasource.password=Abc12345
+    spring.jpa.generate-ddl=true
+=======
+    spring.datasource.url=jdbc:mysql://10.9.118.6:3306/csye7125_notifier?serverTimezone=UTC
+    spring.datasource.username=root
+    spring.datasource.password=11223344
+>>>>>>> 46b832eb9fc75817f006c2f11b18b57ecfcfbbf6
+    spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+    spring.jpa.hibernate.ddl-auto=update
+    spring.jpa.show-sql=true
+    spring.data.rest.base-path=/
+    management.endpoints.web.exposure.include=*

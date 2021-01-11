@@ -1,0 +1,6 @@
+---
+- name: "Delete k8s cluster"
+  hosts: localhost
+  gather_facts: no
+  roles:
+  - ../roles/delete

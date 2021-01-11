@@ -1,0 +1,28 @@
+node {
+    def app
+
+    stage('Clone Repository'){
+        checkout scm
+    }
+
+    sh "git rev-parse HEAD > .git/commit-id"
+    def commit_id = readFile('.git/commit-id').trim()
+
+    stage('Build Image'){
+        app = docker.build("${env.DOCKER_ID3}")
+    }
+    stage('Publish Image to Registry'){
+        docker.withRegistry('https://registry.hub.docker.com', 'docker-cred'){
+            app.push("${commit_id}")
+            app.push("latest")
+        }
+    }
+    stage ('Deploy') {
+        withCredentials([azureServicePrincipal('azure-cred')]){
+            sh "az login --service-principal -u http://aks-service-principal-1 -p ${env.PASSWORD} -t c13230d6-5c6d-4fe7-ae25-9b8304ad0e7b"
+            sh "az account set --subscription ${env.SUBSCRIPTION}"
+            sh "az aks get-credentials --resource-group ${env.RESOURCE_GROUP} --name ${env.AKS_NAME} --overwrite-existing"
+            sh "helm upgrade --install --wait --set image.repository=${env.DOCKER_ID3},image.tag=${commit_id} notifier ./helm"
+        }  
+    }
+}

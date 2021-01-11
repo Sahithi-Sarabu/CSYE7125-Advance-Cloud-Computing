@@ -1,0 +1,15 @@
+---
+- name: Delete MySQL Server Instance
+  shell: az mysql server delete 
+    --resource-group {{ resource_group }} 
+    --name csye7125
+
+- name: Delete MySQL Server Instance
+  shell: az mysql server delete 
+    --resource-group {{ resource_group }} 
+    --name csye7125-poller
+
+- name: Delete MySQL Server Instance
+  shell: az mysql server delete 
+    --resource-group {{ resource_group }} 
+    --name csye7125-notifier

@@ -1,0 +1,21 @@
+node {
+    def app
+
+    stage('Clone Repository'){
+        checkout scm
+    }
+
+    sh "git rev-parse HEAD > .git/commit-id"
+    def commit_id = readFile('.git/commit-id').trim()
+
+    stage ('Deploy') {
+        sh"""
+        export AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}
+        export AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY}
+        export AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION}
+        export KOPS_STATE_STORE=${env.KOPS_STATE_STORE}
+        kops export kubecfg ${env.CLUSTER_NAME} --state ${env.KOPS_STATE_STORE}
+        helm upgrade --install --wait app-pre ./app-req
+        """    
+    }
+}

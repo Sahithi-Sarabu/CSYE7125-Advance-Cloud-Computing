@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmappoller
+data:
+  application.properties: |
+    spring.datasource.url=jdbc:mysql://csye7125-poller.mysql.database.azure.com:3306/csye7125-poller?serverTimezone=UTC
+    spring.datasource.username=azureuser@csye7125-poller
+    spring.datasource.password=Abc12345
+    spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+    spring.jpa.hibernate.ddl-auto=update
+    spring.jpa.show-sql=true
+    spring.data.rest.base-path=/
+    fixedRate=300
+
+    management.endpoints.web.exposure.include=*

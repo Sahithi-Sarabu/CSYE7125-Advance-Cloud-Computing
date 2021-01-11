@@ -1,0 +1,3 @@
+subscription: 98b42acd-cea2-4cd0-a876-f5ac71670675
+resource_group: azure-k8s-cluster
+aks_name: k8s-sahithisarabu-me

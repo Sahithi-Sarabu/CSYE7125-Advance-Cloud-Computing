@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap
+data:
+  application.properties: |
+    spring.datasource.url=jdbc:mysql://csye7125.mysql.database.azure.com:3306/csye7125?serverTimezone=UTC
+    spring.datasource.username=azureuser@csye7125
+    spring.datasource.password=Abc12345
+    spring.jpa.generate-ddl=true
+    spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+    spring.jpa.hibernate.ddl-auto=update
+    spring.jpa.show-sql=true
+    spring.data.rest.base-path=/
+    spring.kafka.bootstrap-servers=kafka:9092
+    spring.kafka.producer.batch-size=16
+    spring.kafka.producer.retries=0
+    spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+    spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer
+    spring.kafka.consumer.enable-auto-commit=true
+    spring.kafka.consumer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+    spring.kafka.consumer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer
+    management.health.probes.enabled=true
+    management.endpoint.health.enabled=true
+    management.endpoint.health.show-details=always
+    management.endpoint.health.group.liveness.include=livenessStateProbeIndicator,diskSpace,refreshScope
+    management.endpoint.health.group.readiness.include=readinessStateProbeIndicator
+    management.endpoint.health.group.liveness.show-details=always
+    management.endpoint.health.group.readiness.show-details=always
+    management.endpoints.web.exposure.include=*
+
+
+
+ 
+

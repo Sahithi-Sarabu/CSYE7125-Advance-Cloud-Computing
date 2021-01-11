@@ -1,0 +1,62 @@
+---
+- name: Get all the availability zones
+  aws_az_info:
+    profile: "{{ AWS_PROFILE }}"
+    filters:
+      region-name: "{{ AWS_REGION }}"
+  register: az_regions
+
+- name: Get availability zones list
+  set_fact:
+    az_zones: "{{ az_regions.availability_zones | map(attribute='zone_name') | list }}"
+
+- name: Get only 3 az if 3 or 4 availabiltiy zones present
+  set_fact:
+    az_zones: "{{ [ az_regions.availability_zones[0].zone_name ] + [ az_regions.availability_zones[1].zone_name ] + [ az_regions.availability_zones[2].zone_name ] | list }}"
+  when: az_regions.availability_zones | length >= 3
+
+- name: Concatenate the availability zones
+  set_fact:
+    zones: "{{ az_zones | join(',') }}"
+
+- name: Create Cluster
+  shell: kops create cluster
+    --kubernetes-version={{K8S_VERSION}}
+    --cloud=aws
+    --master-zones="{{ zones }}"
+    --zones="{{ zones }}"
+    --master-count=3
+    --node-count={{NODE_COUNT}}
+    --topology private
+    --networking kopeio-vxlan
+    --node-size={{NODE_SIZE}}
+    --master-size={{MASTER_SIZE}}
+    --state=s3://{{NAME}}
+    --bastion="true"
+    --name={{NAME}}
+    --ssh-public-key={{SSH_KEY}} --yes
+  environment:
+    AWS_PROFILE: "{{ AWS_PROFILE }}"
+    KOPS_STATE_STORE: "s3://{{NAME}}"
+
+- name: Update Cluster
+  shell: kops update cluster
+    --name={{NAME}}
+    --state=s3://{{NAME}}
+    --yes
+  environment:
+    AWS_PROFILE: "{{ AWS_PROFILE }}"
+    KOPS_STATE_STORE: "s3://{{NAME}}"
+
+- name: Validate Cluster
+  shell: kops validate cluster
+    --name={{NAME}}
+    --state=s3://{{NAME}}
+  delegate_to: localhost
+  register: result
+  until: result.stdout.find("is ready") !=-1
+  retries: 20
+  delay: 60
+  environment:
+    AWS_PROFILE: "{{ AWS_PROFILE }}"
+    KOPS_STATE_STORE: "s3://{{NAME}}"

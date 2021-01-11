@@ -1,0 +1,3 @@
+node_asg_min: 3
+node_asg_max: 6
+asg_name: nodes.k8s.lemingli.me

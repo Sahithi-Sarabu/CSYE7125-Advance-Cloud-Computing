@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-exporter
+  labels:
+    app: kafka-exporter
+spec:
+  ports:
+    - port: {{ .Values.service.port }}
+      name: plaintext
+  clusterIP: None
+  selector:
+    app: kafka

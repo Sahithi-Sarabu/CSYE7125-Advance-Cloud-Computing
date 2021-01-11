@@ -1,0 +1,23 @@
+name: k8s.sahanakannahallimolesomanna.me
+aws_region: us-west-2
+aws_profile: prod
+k8s_vpc_name: k8s.sahanakannahallimolesomanna.me
+rds_vpc_name: rds_vpc
+vpc_name: "rds_vpc"
+vpc_cidr: 10.0.0.0/16
+vpc_subnets:
+  private-1:
+    cidr: 10.0.1.0/24
+    az: "{{ aws_region }}b"
+  private-2:
+    cidr: 10.0.2.0/24
+    az: "{{ aws_region }}c"
+vpc_security_groups:
+  - name: ssh
+    description: "Open SSH port 22"
+    rules:
+      - proto: tcp
+        cidr_ip: 0.0.0.0/0
+        ports:
+          - 22
+

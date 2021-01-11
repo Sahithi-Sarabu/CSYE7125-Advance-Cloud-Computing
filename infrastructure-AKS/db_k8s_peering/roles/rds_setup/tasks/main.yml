@@ -1,0 +1,67 @@
+---
+- name: Launch DB Instance for csye7125
+  shell: az mysql server create --name csye7125
+   --location {{ location }}
+   --resource-group {{ resource_group }}
+   --admin-user {{ admin_user }}
+   --admin-password {{ admin_password }}
+   --version {{ version }}
+   --ssl-enforcement Disabled
+
+- name: Create Database inside server for csye7125
+  shell: az mysql db create --name csye7125
+    --resource-group {{ resource_group }}
+    --server-name csye7125
+
+- name: Create Vnet rule
+  shell: az mysql server vnet-rule create 
+   --name csye7125Rule
+   --resource-group {{ resource_group }}
+   --server csye7125
+   --vnet-name "{{ aks_name }}-vnet"
+   --subnet "{{ aks_name }}-subnet"
+
+- name: Launch DB Instance for csye7125-poller
+  shell: az mysql server create --name csye7125-poller
+   --location {{ location }}
+   --resource-group {{ resource_group }}
+   --admin-user {{ admin_user }}
+   --admin-password {{ admin_password }}
+   --version {{ version }}
+   --ssl-enforcement Disabled
+  
+- name: Create Database inside server for csye7125-poller
+  shell: az mysql db create --name csye7125-poller
+    --resource-group {{ resource_group }}
+    --server-name csye7125-poller
+
+- name: Create Vnet rule
+  shell: az mysql server vnet-rule create 
+    --name csye7125PollerRule
+    --resource-group {{ resource_group }}
+    --server csye7125-poller
+    --vnet-name "{{ aks_name }}-vnet"
+    --subnet "{{ aks_name }}-subnet"
+
+- name: Launch DB Instance for csye7125-notifier
+  shell: az mysql server create --name csye7125-notifier
+    --location {{ location }}
+    --resource-group {{ resource_group }}
+    --admin-user {{ admin_user }}
+    --admin-password {{ admin_password }}
+    --version {{ version }}
+    --ssl-enforcement Disabled
+
+- name: Create Database inside server for csye7125-notifier
+  shell: az mysql db create --name csye7125-notifier
+    --resource-group {{ resource_group }}
+    --server-name csye7125-notifier
+
+- name: Create Vnet rule
+  shell: az mysql server vnet-rule create 
+    --name csye7125NotifierRule
+    --resource-group {{ resource_group }}
+    --server csye7125-notifier
+    --vnet-name "{{ aks_name }}-vnet"
+    --subnet "{{ aks_name }}-subnet"
+

@@ -1,0 +1,89 @@
+---
+- name: Include default variables
+  include_vars:
+    file: ../../../../vars/main.yml
+
+- name: Collect EC2 Instances
+  ec2_instance_info:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    filters:
+      "{{ {'tag:' + terminate_key: terminate_value} }}"
+  register: jenkins_collected_instances
+
+- name: Terminate EC2 Instances
+  ec2:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    state: absent
+    instance_ids: "{{ item.instance_id }}"
+    wait: yes     
+  with_items: "{{ jenkins_collected_instances.instances }}"  
+
+- name: Get VPC for Jenkins
+  ec2_vpc_net:
+    state: present
+    region: "{{ aws_region }}"
+    name: "{{ vpc_name }}"
+    cidr_block: "{{ vpc_cidr }}"
+    dns_hostnames: yes
+    dns_support: yes
+    multi_ok: no
+    tenancy: default
+    profile: "{{ aws_profile }}"
+    tags:
+      Name: "jenkins"
+  register: jenkins_vpc
+
+- name: Delete Internet Gateway
+  ec2_vpc_igw:
+    state: absent
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    vpc_id: "{{ jenkins_vpc.vpc.id }}"
+    tags:
+      Name: "jenkins"
+  register: jenkins_igw
+
+- name: Delete subnets
+  ec2_vpc_subnet:
+    state: absent
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    az: "{{ item.value.az }}"
+    vpc_id: "{{ jenkins_vpc.vpc.id }}"
+    cidr: "{{ item.value.cidr }}"
+    tags:
+      Name: "jenkins_{{ item.value.az }}"
+  with_dict: "{{ vpc_subnets }}"
+  register: jenkins_vpc_subnets
+
+- name: "Delete vpc security groups"
+  ec2_group:
+    state: absent
+    profile: "{{ aws_profile}}"
+    region: "{{ aws_region }}"
+    vpc_id: "{{ jenkins_vpc.vpc.id }}"
+    name: "jenkins_sg_{{ jenkins_vpc.vpc.id }}"
+    description: "jenkins security group for {{ jenkins_vpc.vpc.id }}"
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+  register: jenkins_sg
+
+- name: Delete VPC for Jenkins
+  ec2_vpc_net:
+    state: absent
+    region: "{{ aws_region }}"
+    name: "{{ vpc_name }}"
+    cidr_block: "{{ vpc_cidr }}"
+    dns_hostnames: yes
+    dns_support: yes
+    multi_ok: no
+    tenancy: default
+    profile: "{{ aws_profile }}"
+    tags:
+      Name: "jenkins"
+  register: jenkins_vpc

@@ -1,0 +1,87 @@
+---
+- name: Include default variables
+  include_vars:
+    file: ../../../vars/main.yml
+
+- name: Install latest version of "openjdk-8-jdk" 
+  apt:
+    name: openjdk-8-jdk
+    state: latest
+    install_recommends: yes
+    update_cache: yes
+  become: yes
+
+- name: Ensure Java is installed.
+  package:
+    name: openjdk-8-jdk
+    state: present
+  become: yes
+
+- name: Add Jenkins apt-key
+  apt_key: 
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io.key 
+    state: present    
+  become: yes
+
+- name: Add Jenkins apt repository
+  apt_repository: 
+    repo: 'deb https://pkg.jenkins.io/debian-stable binary/' 
+    state: present
+  become: yes
+
+- name: Install jenkins
+  apt: 
+    name: jenkins
+    state: present
+    update_cache: yes
+    install_recommends: yes
+  become: yes
+
+- name: Install nginx
+  apt: 
+    name: nginx
+    state: present
+    install_recommends: yes   
+  become: yes 
+
+- name: Add certbot apt repository
+  apt_repository: 
+    repo: 'ppa:certbot/certbot'
+    state: present
+  become: yes
+
+- name: Install certbot
+  apt: 
+    name: python-certbot-nginx
+    state: present
+    install_recommends: yes
+  become: yes
+
+- name: Remove the default nginx config
+  file:
+    name: /etc/nginx/sites-enabled/default
+    state: absent
+  become: yes
+
+- name: Copy the config file to required location
+  template:
+    src: nginx.config.j2
+    dest: "/etc/nginx/nginx.conf"
+    owner: root
+    group: root
+    mode: 0644
+  become: yes
+
+- name: Test Nginx
+  shell: nginx -t
+  become: yes
+
+- name: Reload Nginx
+  service:
+    name: nginx
+    state: reloaded
+  become: yes
+
+- name: Use Certbot to generate certificates
+  shell: certbot --nginx -n -d "{{ sub_domain }}" --email "{{ email }}" --agree-tos --redirect
+  become: yes

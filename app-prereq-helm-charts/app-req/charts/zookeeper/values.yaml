@@ -1,0 +1,19 @@
+# Default values for zookeeper.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+statefulset:
+  replicaCount: 3
+
+image:
+  repository: k8s.gcr.io/kubernetes-zookeeper:1.0-3.4.10
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+service:
+  port: 2181
+
+headless_service:
+  server: 2888
+  leader_election: 3888

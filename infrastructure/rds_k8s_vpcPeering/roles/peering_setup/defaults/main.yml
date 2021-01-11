@@ -1,0 +1,4 @@
+aws_profile: prod
+aws_region: us-west-2
+k8s_vpc_name: k8s.sahanakannahallimolesomanna.me
+rds_vpc_name: rds_vpc

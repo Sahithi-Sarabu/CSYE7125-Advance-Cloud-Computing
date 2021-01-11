@@ -1,0 +1,8 @@
+AWS_REGION: us-west-2
+K8S_VERSION: "1.16.15"
+AWS_PROFILE: prod
+NAME: k8s.sahanakannahallimolesomanna.me
+NODE_COUNT: 3
+MASTER_SIZE: t2.micro
+NODE_SIZE: t2.micro
+SSH_KEY: ~/.ssh/cloud.pub

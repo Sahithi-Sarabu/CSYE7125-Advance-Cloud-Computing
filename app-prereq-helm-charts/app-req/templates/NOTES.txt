@@ -1,0 +1,4 @@
+To change the number of replicas of the running instances, change the value of replicaCount in values.yml 
+To Install the helm chart "helm install app-name ./app-path"
+To upgrade the helm chart "helm upgrade app-name ./app-path"
+To get history of the deployments "helm history app-name"

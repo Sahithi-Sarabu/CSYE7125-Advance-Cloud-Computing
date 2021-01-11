@@ -1,0 +1,13 @@
+resource_group: azure-k8s-cluster
+k8s_version: "1.18.10"
+location: westus2
+aks_name: k8s-sahithisarabu-me
+username: azureuser
+node_count: 6
+node_size: Standard_D4s_v3
+ssh_key: ~/.ssh/cloud.pub
+client_id: 099252cc-1c0d-4f24-a7d4-33331fd37828
+client_secret: DvPRYbgaF4-LkJ58Ky4rIPG.nDGlfdg1cB
+max_count: 12
+min_count: 6
+network_plugin: azure

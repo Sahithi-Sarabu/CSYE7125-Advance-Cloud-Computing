@@ -1,0 +1,26 @@
+node {
+    def app
+
+    stage('Clone Repository'){
+        checkout scm
+    }
+
+    sh "git rev-parse HEAD > .git/commit-id"
+    def commit_id = readFile('.git/commit-id').trim()
+
+    stage('Build Image'){
+        app = docker.build("${env.DOCKER_ID1}")
+    }
+    stage('Publish Image to Registry'){
+        docker.withRegistry('https://registry.hub.docker.com', 'docker-cred'){
+            app.push("${commit_id}")
+            app.push("latest")
+        }
+    }
+    stage ('Deploy') {
+        sh"""
+	    gcloud container clusters get-credentials gke-cluster --region us-east1 --project ${env.PROJECT_ID} 
+        helm upgrade --install --wait --set image.repository=${env.DOCKER_ID1},image.tag=${commit_id} myapp ./helm
+        """    
+    }
+}

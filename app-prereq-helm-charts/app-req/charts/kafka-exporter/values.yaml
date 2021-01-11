@@ -1,0 +1,10 @@
+replicaCount: 3
+  
+image:
+  repository: danielqsj/kafka-exporter
+  pullPolicy: Always
+# Overrides the image tag whose default is the chart appVersion.
+  tag: latest
+  
+service:
+  port: 9308

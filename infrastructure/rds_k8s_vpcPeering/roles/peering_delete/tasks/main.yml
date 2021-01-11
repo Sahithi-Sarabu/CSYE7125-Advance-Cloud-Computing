@@ -1,0 +1,50 @@
+---
+- name: Get k8s vpc info
+  ec2_vpc_net_info:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ k8s_vpc_name }}"
+  register: k8s_vpc
+
+- name: Get rds vpc info
+  ec2_vpc_net_info:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ rds_vpc_name }}"
+  register: rds_vpc
+
+- name: Get VPC peering Connection
+  ec2_vpc_peer:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    vpc_id: "{{ k8s_vpc.vpcs[0].id }}"
+    peer_vpc_id: "{{ rds_vpc.vpcs[0].id }}"
+    state: present
+    tags:
+      Name: Peering connection from k8s VPC 21 to rds VPC
+  register: vpc_peer
+
+- name: delete a VPC peering Connection
+  ec2_vpc_peer:
+    profile: "{{ aws_profile }}"
+    region: "{{ aws_region }}"
+    peering_id: "{{ vpc_peer.peering_id }}"
+    state: absent
+  register: vpc_peer
+
+- name: Delete rds VPC
+  ec2_vpc_net:
+    state: absent
+    region: "{{ aws_region }}"
+    name: "{{ vpc_name }}"
+    cidr_block: "{{ vpc_cidr }}"
+    dns_hostnames: yes
+    dns_support: yes
+    multi_ok: no
+    tenancy: default
+    profile: "{{ aws_profile }}"
+    tags:
+      Name: "rds_vpc"
+  register: rds_vpc

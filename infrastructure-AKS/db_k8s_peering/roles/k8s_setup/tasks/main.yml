@@ -1,0 +1,37 @@
+- name: Create resource group
+  shell: az group create --location "{{ location }}" --name "{{ resource_group }}" 
+
+- name: Create a Virtual network
+  shell: az network vnet create 
+    --location "{{ location }}"
+    --resource-group "{{ resource_group }}"
+    --name "{{ aks_name }}-vnet"
+    --subnet-name "{{ aks_name }}-subnet"
+    --subnet-prefix 10.0.0.0/16
+
+- name: Create Service Endpoint for SQL
+  shell: az network vnet subnet update --resource-group "{{ resource_group }}"
+    --vnet-name "{{ aks_name }}-vnet" 
+    --name "{{ aks_name }}-subnet"
+    --service-endpoints Microsoft.Sql
+  
+- name: Create a AKS cluster
+  shell: az aks create --name "{{ aks_name }}"
+    --resource-group "{{ resource_group }}"
+    --kubernetes-version "{{k8s_version}}"
+    --location "{{ location }}"
+    --enable-cluster-autoscaler
+    --max-count "{{ max_count }}"
+    --min-count "{{ min_count }}"
+    --node-count "{{ node_count }}"
+    --node-vm-size "{{ node_size }}"
+    --dns-name-prefix "{{ aks_name }}-dns"
+    --network-plugin "{{ network_plugin }}"
+    --ssh-key-value "{{ ssh_key }}"
+    --admin-username "{{ username }}"
+    --vnet-subnet-id "/subscriptions/98b42acd-cea2-4cd0-a876-f5ac71670675/resourceGroups/azure-k8s-cluster/providers/Microsoft.Network/virtualNetworks/k8s-sahithisarabu-me-vnet/subnets/k8s-sahithisarabu-me-subnet"
+    --service-cidr 10.1.0.0/16
+    --dns-service-ip 10.1.0.10
+    --service-principal "{{ client_id }}"
+    --client-secret "{{ client_secret }}"
+    --zones 1 2 3

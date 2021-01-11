@@ -1,0 +1,6 @@
+
+image:
+  repository: fluent/fluentd-kubernetes-daemonset:v1.4.2-debian-elasticsearch-1.1
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
